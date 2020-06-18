@@ -3,6 +3,8 @@ jitsi-meet-focal
 
 Role for jitsi-meet on Ubuntu 20.04 (not tested with any other version).
 
+This role includes small parts of the great work done by [SWITCH](https://github.com/switch-ch/jitsi-deploy).
+
 Requirements
 ------------
 
