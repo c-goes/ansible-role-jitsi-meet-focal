@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+
+cp /etc/letsencrypt/live/{{ certbot_certs[0]["domains"][0] }}/fullchain.pem /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.crt
+cp /etc/letsencrypt/live/{{ certbot_certs[0]["domains"][0] }}/privkey.pem /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.key
+
+
+chown root:turnserver /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.key
+chmod a-r /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.key
+
+sleep 5
+
+service coturn restart
+service nginx restart

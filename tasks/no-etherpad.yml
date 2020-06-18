@@ -1,0 +1,42 @@
+
+
+- name: stop etherpad
+  systemd:
+    name: etherpad.service
+    enabled: no
+    daemon_reload: yes
+    state: stopped
+
+
+- name: systemd configured for etherpad
+  file:
+    path: /etc/systemd/system/etherpad.service
+    state: absent
+
+
+
+- name: remove config in nginx for etherpad
+  blockinfile:
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for nginx etherpad config"
+    path: /etc/nginx/sites-enabled/{{ meet_domain }}.conf
+    insertbefore: "^[ ]+# websockets .*"
+    block: |
+        # Etherpad-lite
+        location ^~ /etherpad/ {
+            proxy_pass http://localhost:9001/;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_buffering off;
+            proxy_set_header       Host $host;
+        }
+    state: absent
+  notify:
+    - restart nginx
+
+- name: configure jitsi-meet for disabled etherpad
+  blockinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    insertbefore: "^[ ]+// Allow all above example .*"
+    marker: "// {mark} ANSIBLE MANAGED BLOCK for jitsi meet etherpad config"
+    block: |4
+        etherpad_base: 'https://{{ meet_domain }}/etherpad/p/',
+    state: absent

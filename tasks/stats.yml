@@ -1,0 +1,25 @@
+
+- name: configure statistic in videobridge (1)
+  lineinfile:
+    path: /etc/jitsi/videobridge/sip-communicator.properties
+    regexp: '^org.jitsi.videobridge.ENABLE_STATISTICS='
+    line: org.jitsi.videobridge.ENABLE_STATISTICS=true
+  notify:
+    - restart jitsi-videobridge2
+  
+# - name: configure statistic in videobridge (2)
+#   lineinfile:
+#     path: /etc/jitsi/videobridge/sip-communicator.properties
+#     regexp: '^org.jitsi.videobridge.STATISTICS_TRANSPORT='
+#     line: org.jitsi.videobridge.STATISTICS_TRANSPORT=muc,colibri
+#   notify:
+#     - restart jitsi-videobridge2
+  
+# - name: configure statistic in videobridge (3)
+#   lineinfile:
+#     path: /etc/jitsi/videobridge/config
+#     regexp: '^JVB_OPTS='
+#     line: 'JVB_OPTS="--apis=xmpp,rest"'
+#   notify:
+#     - restart jitsi-videobridge2
+

@@ -1,0 +1,103 @@
+# todo:
+# als user etherpad in /opt/etherpad
+  # npm install sqlite3
+# lineinfile ändern
+
+# "dbType": "sqlite",
+# "dbSettings": {
+#   "filename": "var/sqlite_dirty.db"
+# }, 
+
+
+# welcome ändern per ansible
+
+#    "lang":             "de-de"
+
+
+- name: make sure git and nodejs are installed
+  apt:
+    name:
+        - git
+        - nodejs
+        - npm
+
+- name: make sure etherpad lite is at specified version
+  git:
+    repo: https://github.com/ether/etherpad-lite.git
+    version: master
+    dest: /opt/etherpad
+
+
+- name: create user for etherpad
+  user:
+    name: "etherpad"
+    shell: "/bin/bash"
+
+- name: set owner/group for service files
+  file:
+    path: "/opt/etherpad"
+    owner: "etherpad"
+    group: "etherpad"
+    recurse: yes
+
+- name: etherpad deps install
+  command: /opt/etherpad/bin/installDeps.sh
+  args:
+    chdir: /opt/etherpad
+  changed_when: false
+# TODO creates
+    
+
+
+- name: systemd configured for etherpad
+  copy:
+    dest: /etc/systemd/system/etherpad.service
+    content: |
+        [Unit]
+        Description=Etherpad-lite, the collaborative editor.
+        After=syslog.target network.target
+        
+        [Service]
+        Type=simple
+        User=etherpad
+        Group=etherpad
+        WorkingDirectory=/opt/etherpad
+        Environment=NODE_ENV=production
+        ExecStart=/usr/bin/nodejs /opt/etherpad/node_modules/ep_etherpad-lite/node/server.js
+        Restart=always
+        
+        [Install]
+        WantedBy=multi-user.target
+
+- name: start etherpad
+  systemd:
+    name: etherpad.service
+    enabled: yes
+    daemon_reload: yes
+    state: started
+
+
+- name: configure nginx for etherpad
+  blockinfile:
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for nginx etherpad config"
+    path: /etc/nginx/sites-enabled/{{ meet_domain }}.conf
+    insertbefore: "^[ ]+# websockets .*"
+    block: |
+        # Etherpad-lite
+        location ^~ /etherpad/ {
+            proxy_pass http://localhost:9001/;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_buffering off;
+            proxy_set_header       Host $host;
+        }
+  notify:
+    - restart nginx
+
+- name: configure jitsi-meet for etherpad
+  blockinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    insertbefore: "^[ ]+// Allow all above example .*"
+    marker: "// {mark} ANSIBLE MANAGED BLOCK for jitsi meet etherpad config"
+    block: |4
+        etherpad_base: 'https://{{ meet_domain }}/etherpad/p/',
+    state: present

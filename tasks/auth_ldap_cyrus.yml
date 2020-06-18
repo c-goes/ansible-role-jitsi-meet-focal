@@ -1,0 +1,131 @@
+
+- name: remove dependencies when ldap is disabled
+  apt:
+    name:
+      - sasl2-bin
+      - libsasl2-modules-ldap
+      - lua-cyrussasl
+    state: "{{ state }}"
+    autoremove: yes
+    purge: yes
+  when: state == "absent"
+
+
+- name: install dependencies for ldap
+  apt:
+    name:
+      - sasl2-bin
+      - libsasl2-modules-ldap
+      - lua-cyrussasl
+    state: "{{ state }}"
+- name: config for saslauthd
+  copy:
+    dest: /etc/saslauthd.conf
+    content: |
+      ldap_servers: {{ meet_ldap_url }}
+      ldap_search_base: {{ meet_ldap_base }}
+      ldap_bind_dn: {{ meet_ldap_binddn }}
+      ldap_bind_pw: {{ meet_ldap_bindpw }}
+      ldap_filter: {{ meet_ldap_filter }}
+      ldap_version: 3
+      ldap_auth_method: bind
+      ldap_tls_check_peer: {{ 'yes' if meet_ldap_check_peer else 'no' }}
+      ldap_tls_ciphers: SECURE256:SECURE128:!AES-128-CBC:!ARCFOUR-128:!CAMELLIA-128-CBC:!3DES-CBC:!CAMELLIA-128-CBC
+  when: state == "present"
+
+  notify:
+    - restart saslauthd
+    - restart prosody
+- name: autostart saslauthd
+  lineinfile:
+    path: /etc/default/saslauthd
+    regexp: "^START="
+    line: "START=yes"
+  when: state == "present"
+  notify:
+    - restart saslauthd
+    - restart prosody
+- name: mech ldap saslauthd
+  lineinfile:
+    path: /etc/default/saslauthd
+    regexp: "^MECHANISMS="
+    line: 'MECHANISMS="ldap"'
+  when: state == "present"
+  notify:
+    - restart saslauthd
+    - restart prosody
+- name: mech ldap saslauthd
+  lineinfile:
+    path: /etc/default/saslauthd
+    regexp: "^MECH_OPTIONS="
+    line: "MECH_OPTIONS=/etc/saslauthd.conf"
+  when: state == "present"
+  notify:
+    - restart saslauthd
+    - restart prosody
+- name: enable saslauthd
+  systemd:
+    name: saslauthd
+    enabled: yes
+    state: started
+  when: state == "present"
+- name: directories for sasl
+  file:
+    path: /etc/sasl
+    owner: root
+    group: root
+    state: directory
+  when: state == "present"
+
+- name: xmpp file for saslauthd
+  copy:
+    dest: "/etc/sasl/xmpp.conf"
+    content: |
+      pwcheck_method: saslauthd
+      mech_list: PLAIN
+  when: state == "present"
+
+  notify:
+    - restart saslauthd
+    - restart prosody
+
+- name: enable ldap in prosody
+  blockinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK ldap cyrus (prosody)"
+    block: |
+        cyrus_application_name = "xmpp"
+        allow_unencrypted_plain_auth = true   
+    insertbefore: ^[ ]+-- we need bosh.*
+    state: "{{ state }}"
+  notify:
+    - restart prosody
+
+
+- name: enable ldap in prosody
+  blockinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK enable auth_cyrus (prosody)"
+    block: |
+        "auth_cyrus";   
+    insertafter: '^[ ]+"bosh";'
+    state: "{{ state }}"
+  notify:
+    - restart prosody
+
+
+- name: enable saslauthd
+  systemd:
+    name: saslauthd
+    enabled: yes
+    state: restarted
+  when: state == "present"
+
+
+- name: adding existing user prosody to sasl group
+  user:
+    name: 'prosody'
+    groups: sasl
+    append: yes
+  notify:
+    - restart prosody

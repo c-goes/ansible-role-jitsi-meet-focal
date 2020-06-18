@@ -1,0 +1,69 @@
+---
+# defaults file for jitsi-meet-focal
+
+meet_packages:
+    - jitsi-meet=2.0.4627-1
+    - jitsi-meet-turnserver=1.0.4127-1
+    - lua-sec
+    - lua-ldap
+    - lua-basexx
+
+meet_etherpad: yes
+
+meet_language: de
+
+
+# type of authentication, ldap, internal_hashed, anonymous for disabled authentication
+meet_auth_type: internal_hashed
+# allow guests in meetings (no need for authentication):
+meet_allow_guest: yes
+
+# default user is jitsi/meet
+meet_users:
+    - username: jitsi
+      password: meet
+
+meet_ldap_url: "ldaps://localhost/"
+meet_ldap_base: ""
+meet_ldap_binddn: ""
+meet_ldap_bindpw: ""
+meet_ldap_filter: ""
+meet_ldap_use_tls: True
+meet_ldap_check_peer: False
+
+meet_default_display_name: anonym
+meet_default_local_display_name: ich
+meet_watermark_link: 'https://jitsi.org'
+
+
+meet_repo_line: 'deb https://download.jitsi.org/ stable/'
+
+meet_debconf_settings:
+    #  - name: jitsi-meet
+    #    question: jitsi-meet/jvb-hostname
+    #    value: "{{ jitsi_fqdn }}"
+    #    vtype: string
+      - name: jitsi-videobridge2
+        question: jitsi-videobridge/jvb-hostname
+        value: "{{ meet_domain }}"
+        vtype: string
+    #   - name: jitsi-meet
+    #     question: jitsi-meet/jvb-serve
+    #     value: "false"
+    #     vtype: boolean
+      - name: jitsi-meet-prosody
+        question: jitsi-meet-prosody/jvb-hostname
+        value: "{{ meet_domain }}"
+        vtype: string
+      - name: jitsi-meet-web-config
+        question: jitsi-meet/cert-choice
+        value: "I want to use my own certificate"
+        vtype: select
+      - name: jitsi-meet-web-config
+        question: jitsi-meet/cert-path-key
+        value: "/etc/ssl/{{ meet_domain }}.key"
+        vtype: string
+      - name: jitsi-meet-web-config
+        question: jitsi-meet/cert-path-crt
+        value: "/etc/ssl/{{ meet_domain }}.crt"
+        vtype: string

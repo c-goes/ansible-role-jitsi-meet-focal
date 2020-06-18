@@ -1,0 +1,13 @@
+
+
+- name: add additional html
+  template:
+    src: additional.html.j2
+    dest: /usr/share/jitsi-meet/static/welcomePageAdditionalContent.html
+
+- name: copy new logo
+  copy:
+    src: "{{ meet_watermark_loc }}"
+    dest: "/usr/share/jitsi-meet/images/watermark.png"
+    backup: yes
+  when: meet_watermark_loc is defined

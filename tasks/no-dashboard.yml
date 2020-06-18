@@ -1,0 +1,82 @@
+---
+
+
+
+
+- name: remove influxdb, telegraf, grafana
+  apt:
+    name:
+        - grafana
+        - influxdb
+        - telegraf
+    autoremove: yes
+    purge: yes
+    state: absent
+
+
+- name: remove influxdb apt repo.
+  apt_repository:
+    repo: "deb https://repos.influxdata.com/debian {{ ansible_distribution_release }} stable"
+    state: "absent"
+    # Ansible will automatically add the ".list" suffix.
+    filename: /etc/apt/sources.list.d/influxdb
+
+
+
+- name: remove grafana apt repo.
+  apt_repository:
+    repo: "deb https://packages.grafana.com/oss/deb stable main"
+    state: "absent"
+    # Ansible will automatically add the ".list" suffix.
+    filename: /etc/apt/sources.list.d/grafana
+
+
+- name: remove telegraf apt repo.
+  apt_repository:
+    repo: "deb https://repos.influxdata.com/debian {{ ansible_distribution_release }} stable"
+    state: "absent"
+    # Ansible will automatically add the ".list" suffix.
+    filename: /etc/apt/sources.list.d/telegraf
+
+
+- file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/telegraf/telegraf.d/jitsi.conf
+    - /etc/telegraf/telegraf.conf
+    - /etc/grafana/grafana.ini
+
+
+- name: configure statistic in videobridge (1)
+  lineinfile:
+    path: /etc/jitsi/videobridge/sip-communicator.properties
+    regexp: '^org.jitsi.videobridge.ENABLE_STATISTICS='
+    line: org.jitsi.videobridge.ENABLE_STATISTICS=false
+  notify:
+    - restart jitsi-videobridge2
+  
+- name: configure statistic in videobridge (2)
+  lineinfile:
+    path: /etc/jitsi/videobridge/sip-communicator.properties
+    regexp: '^org.jitsi.videobridge.STATISTICS_TRANSPORT='
+    line: org.jitsi.videobridge.STATISTICS_TRANSPORT=muc
+  notify:
+    - restart jitsi-videobridge2
+  
+- name: configure statistic in videobridge (3)
+  lineinfile:
+    path: /etc/jitsi/videobridge/config
+    regexp: '^JVB_OPTS='
+    line: 'JVB_OPTS="--apis=,"'
+  notify:
+    - restart jitsi-videobridge2
+
+
+- name: configure nginx for grafana
+  blockinfile:
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for nginx grafana"
+    path: /etc/nginx/sites-enabled/{{ meet_domain }}.conf
+    state: absent
+  notify:
+    - restart nginx

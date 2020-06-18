@@ -1,0 +1,230 @@
+---
+# tasks file for jitsi-meet-focal
+
+- name: for molecule
+  file:
+    path: /usr/share/man/man1
+    state: directory
+
+- name: install my packages
+  apt:
+    name:
+        - nano
+        - curl
+        - ca-certificates
+        - debconf-utils
+        - net-tools
+        - dnsutils
+        - htop
+        - vim
+        - jq
+        - apt-transport-https
+        - gnupg-agent
+        - cowsay
+        - fish
+    update_cache: yes
+
+- name: generate snakeoil cert
+  apt:
+    name:
+        - ssl-cert
+    update_cache: yes
+
+- name: check if certbot did run already
+  stat:
+    path: /etc/letsencrypt/live/{{ certbot_certs[0]["domains"][0] }}/fullchain.pem
+  register: certbot_run
+
+- name: copy snakeoil certs when certbot did not run yet
+  copy:
+    src: "{{ item.s }}"
+    dest: "{{ item.d }}"
+    remote_src: yes
+  loop:
+    - { s: '/etc/ssl/private/ssl-cert-snakeoil.key', d: '/etc/ssl/{{ meet_domain }}.key' }
+    - { s: '/etc/ssl/certs/ssl-cert-snakeoil.pem', d: '/etc/ssl/{{ meet_domain }}.crt' }
+  when: not certbot_run.stat.exists
+  notify:
+    - restart nginx
+    - restart coturn
+
+
+- name: Set debconf options for jitsi-meet.
+  debconf:
+    name: "{{ item.name }}"
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  with_items: "{{ meet_debconf_settings }}"
+  notify:
+    - restart jitsi-videobridge2
+    - restart jicofo
+    - restart prosody
+    - restart nginx
+    - restart coturn
+
+   
+- name: Configure signing key for Jitsi repository.
+  apt_key:
+    id: 66A9CD0595D6AFA247290D3BEF8B479E2DC1389C
+    url: "https://download.jitsi.org/jitsi-key.gpg.key"
+    state: present
+
+- name: Install Jitsi apt repo.
+  apt_repository:
+    repo: "{{ meet_repo_line }}"
+    state: "present"
+    # Ansible will automatically add the ".list" suffix.
+    filename: /etc/apt/sources.list.d/jitsi_meet
+
+- name: install jitsi packages
+  apt:
+    name: "{{ meet_packages }}"
+    update_cache: yes
+
+- name: When floating ipv4 is defined, set it as external for coturn
+  lineinfile:
+    path: /etc/turnserver.conf
+    regexp: '^external-ip='
+    line: "external-ip={{ float4 }}"
+  when: float4 is defined
+  notify: restart coturn
+
+- name: When floating ipv4 is not defined, configure default ipv4 for coturn
+  lineinfile:
+    path: /etc/turnserver.conf
+    regexp: '^external-ip='
+    line: "external-ip={{ ansible_default_ipv4.address }}"
+  when: float4 is not defined
+  notify: restart coturn
+
+# - name: template renewal hook
+#   template:
+#     src: renew_hook.sh.j2
+#     dest: '/etc/letsencrypt/renewal-hooks/deploy/jitsi-meet'
+#     mode: 0744
+
+
+- name: additionals
+  include: additional.yml
+
+- name: configure auth
+  include: auth.yml
+
+- name: install etherpad
+  include: etherpad.yml
+  when: meet_etherpad
+
+- name: disable etherpad
+  include: etherpad.yml
+  when: not meet_etherpad
+
+- name: configure for own stun / turn
+  include: stun_turn.yml
+
+
+
+- name: Ensure there are no third party requests
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*disableThirdPartyRequests: '
+    insertafter: '^[ ]*// disableThirdPartyRequests: '
+    line: '    disableThirdPartyRequests: true,'
+
+
+- name: "Ensure the language is *{{ meet_language }}*"
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*defaultLanguage: '
+    insertafter: '^[ ]*// defaultLanguage: '
+    line: "    defaultLanguage: '{{ meet_language }}',"
+
+  
+- name: enable ipv6
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*useIPv6: '
+    insertafter: '^[ ]*// useIPv6: '
+    line: "    useIPv6: true,"
+
+
+- name: configure certbot cron for stop/start of services
+  block:
+    - name: directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+      loop:
+        - /etc/letsencrypt
+        - /etc/letsencrypt/renewal-hooks/post/
+        - /etc/letsencrypt/renewal-hooks/pre/
+        - /etc/letsencrypt/renewal-hooks/deploy/
+
+    - name: Create pre-renew hook to stop TLS servers
+      copy:
+        content: |
+            #!/bin/bash
+            
+            systemctl stop {{ item }}
+
+        dest: "/etc/letsencrypt/renewal-hooks/pre/stop_{{ item }}"
+        mode: u+x
+      loop: "{{ certbot_create_standalone_stop_services }}"
+
+    - name: Create post-renew hook to start TLS servers
+      copy:
+        content: |
+            #!/bin/bash
+            
+            systemctl start {{ item }}
+            
+        dest: "/etc/letsencrypt/renewal-hooks/post/start_{{ item }}"
+        mode: u+x
+      loop: "{{ certbot_create_standalone_stop_services }}"
+
+    - name: Copy certificate after renewal
+      copy:
+        content: |
+            #!/bin/bash
+
+            
+            cp /etc/letsencrypt/live/{{ certbot_certs[0]["domains"][0] }}/fullchain.pem /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.crt
+            cp /etc/letsencrypt/live/{{ certbot_certs[0]["domains"][0] }}/privkey.pem /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.key
+
+
+            chown root:turnserver /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.key
+            chmod a-r /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.key
+
+            
+        dest: "/etc/letsencrypt/renewal-hooks/deploy/jitsi-meet"
+        mode: u+x
+  when: certbot_create_standalone_stop_services is defined and certbot_certs is defined
+
+
+
+- name: change watermark link
+  lineinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    regexp: '^[ ]+JITSI_WATERMARK_LINK:'
+    line: "    JITSI_WATERMARK_LINK: '{{ meet_watermark_link }}',"
+
+- name: change default display name to anonym
+  lineinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    regexp: '^[ ]+DEFAULT_REMOTE_DISPLAY_NAME:'
+    line: "    DEFAULT_REMOTE_DISPLAY_NAME: '{{ meet_default_display_name }}',"
+
+
+
+- name: change default local display name
+  lineinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    regexp: '^[ ]+DEFAULT_LOCAL_DISPLAY_NAME:'
+    line: "    DEFAULT_LOCAL_DISPLAY_NAME: '{{ meet_default_local_display_name }}',"
+
+
+# - include: no-dashboard.yml
+
+# - include: no-stats.yml

@@ -1,0 +1,46 @@
+---
+# handlers file for jitsi-meet-focal
+
+
+- name: restart etherpad
+  systemd:
+    name: etherpad
+    state: restarted
+
+- name: restart coturn
+  systemd:
+    name: coturn
+    state: restarted
+
+- name: restart jitsi-videobridge2
+  systemd:
+    name: jitsi-videobridge2
+    state: restarted
+- name: restart jicofo
+  systemd:
+    name: jicofo
+    state: restarted
+- name: restart prosody
+  systemd:
+    name: prosody
+    state: restarted
+- name: restart nginx
+  systemd:
+    name: nginx
+    state: restarted
+- name: restart saslauthd
+  systemd:
+    name: saslauthd
+    state: restarted
+- name: restart telegraf
+  systemd:
+    name: telegraf
+    state: restarted
+- name: restart grafana-server
+  systemd:
+    name: grafana-server
+    state: restarted
+- name: restart influxdb
+  systemd:
+    name: influxdb
+    state: restarted

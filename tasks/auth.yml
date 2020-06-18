@@ -1,0 +1,122 @@
+- name: only accept supported auth types
+  assert:
+    that:
+        - meet_auth_type in ['ldap', 'ldap2', 'internal_hashed', 'anonymous']
+
+
+- name: configure jicofo for authentication (only when it's not jwt)
+  lineinfile:
+    path: /etc/jitsi/jicofo/sip-communicator.properties
+    regexp: '^org.jitsi.jicofo.auth.URL='
+    insertbefore: EOF
+    line: org.jitsi.jicofo.auth.URL=XMPP:{{ meet_domain }}
+    state: present
+  when: meet_auth_type != 'anonymous' and meet_auth_type != "jwt"
+  notify:
+    - restart jicofo
+
+
+- name: configure jicofo for authentication (only when it's not jwt)
+  lineinfile:
+    path: /etc/jitsi/jicofo/sip-communicator.properties
+    regexp: '^org.jitsi.jicofo.auth.URL='
+    insertbefore: EOF
+    line: org.jitsi.jicofo.auth.URL=EXT_JWT:{{ meet_domain }}
+    state: present
+  when: meet_auth_type and meet_auth_type == "jwt"
+  notify:
+    - restart jicofo
+
+
+- name: disable jicofo for authentication (only when it's not jwt)
+  lineinfile:
+    path: /etc/jitsi/jicofo/sip-communicator.properties
+    regexp: '^org.jitsi.jicofo.auth.URL='
+    state: absent
+  when: meet_auth_type == 'anonymous'
+  notify:
+    - restart jicofo
+
+
+- set_fact:
+    auth_value: "{{ meet_auth_type }}"
+  when: meet_auth_type is defined and meet_auth_type and meet_auth_type != "ldap"
+
+- set_fact:
+    auth_value: cyrus
+  when: meet_auth_type == "ldap"
+
+
+- name: "configure authentication for moderator"
+  lineinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    regexp: "^[ ]+authentication ="
+    line: 'authentication = "{{ auth_value }}"'
+    firstmatch: yes
+    state: present
+  notify:
+    - restart prosody
+
+- name: enable access for guests in prosody
+  blockinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK for guest config (prosody)"
+    block: |
+      VirtualHost "guest.{{ meet_domain }}"
+      authentication = "anonymous"
+      modules_enabled = {
+      "turncredentials";
+      }
+      c2s_require_encryption = false        
+    insertbefore: EOF
+    state: present
+  when: meet_allow_guest
+  notify:
+    - restart prosody
+
+
+
+- name: disable access for guests in prosody
+  blockinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK for guest config (prosody)"
+    state: absent    
+  when: not meet_allow_guest
+  notify:
+    - restart prosody
+
+- name: enable access for guests in web
+  blockinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+
+    marker: "// {mark} ANSIBLE MANAGED BLOCK for guest config"
+    block: |
+      anonymousdomain: 'guest.{{ meet_domain }}',
+    insertafter: '^[ ]+// anonymousdomain'
+    state: present
+    
+  when: meet_allow_guest
+
+
+
+- name: disable access for guests in web
+  blockinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    marker: "// {mark} ANSIBLE MANAGED BLOCK for guest config"
+    state: absent    
+  when: not meet_allow_guest
+
+- name: add users
+  shell: /usr/bin/prosodyctl --config /etc/prosody/prosody.cfg.lua register {{ item.username }} {{ meet_domain }} {{ item.password }}
+  when: meet_auth_type == 'internal_hashed' or meet_auth_type == 'internal'
+  loop: "{{ meet_users }}"
+  changed_when: False
+
+
+- name: enable ldap
+  include: auth_ldap.yml state=present
+  when: meet_auth_type is defined and meet_auth_type == 'ldap2'
+
+- name: enable ldap
+  include: auth_ldap_cyrus.yml state=present
+  when: meet_auth_type is defined and meet_auth_type == 'ldap'
