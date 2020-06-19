@@ -41,6 +41,28 @@ Example Playbook
       roles:
          - { role: jitsi-meet-focal }
          - { role: geerlingguy.certbot }
+      # simulate a certbot renew --force-renewal (the deployed hooks are only executed for certbot renew)
+      post_tasks:
+        - copy:
+            remote_src: yes
+            src: /etc/letsencrypt/live/{{ certbot_certs[0]["domains"][0] }}/fullchain.pem
+            dest: /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.crt
+          register: copycert
+        - copy:
+            remote_src: yes
+            src: /etc/letsencrypt/live/{{ certbot_certs[0]["domains"][0] }}/privkey.pem
+            dest: /etc/ssl/{{ certbot_certs[0]["domains"][0] }}.key
+            mode: 0660
+            owner: root
+            group: turnserver
+          register: copykey
+        - systemd:
+            name: nginx
+            state: restarted
+          when: copykey.changed or copycert.changed
+        - debug: msg="info: certificates were copied for this initial installation"
+          when: copykey.changed or copycert.changed
+
 
 License
 -------
