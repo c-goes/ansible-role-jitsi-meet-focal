@@ -5,6 +5,57 @@
     src: additional.html.j2
     dest: /usr/share/jitsi-meet/static/welcomePageAdditionalContent.html
 
+
+- name: add style for footer
+  copy:
+    dest: "/usr/share/jitsi-meet/plugin.head.html"
+    content: |
+      <style>
+        .welcome-page-content {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+            margin-top: 35px;
+            width: 100%
+        }
+        .welcome-page-content .welcome-footer {
+            color: #FFF;
+            display: flex;
+            padding-bottom: 20px;
+            padding-top: 20px;
+            width: 100%;
+            z-index: 1
+        }
+        .welcome-page-content .welcome-footer-content a {
+            color: #fff !important;
+            text-decoration: underline
+        }
+
+        .welcome-page-content .welcome-footer-content {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            z-index: 2
+        }
+
+        .welcome-page-content .welcome-footer-about {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            font-size: 14px;
+            line-height: 20px;
+            text-align: center;
+            justify-content: center
+        }
+
+        .welcome-page-content .welcome-footer-about:last-child {
+            margin-left: 4px
+        }
+      </style>
+
 - name: copy new logo
   copy:
     src: "{{ meet_watermark_loc }}"

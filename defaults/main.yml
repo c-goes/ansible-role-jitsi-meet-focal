@@ -11,6 +11,7 @@ meet_packages:
 meet_etherpad: yes
 
 meet_language: de
+etherpad_language: de-de
 
 
 # type of authentication, ldap, internal_hashed, anonymous for disabled authentication
@@ -35,6 +36,10 @@ meet_default_display_name: anonym
 meet_default_local_display_name: ich
 meet_watermark_link: 'https://jitsi.org'
 
+meet_videobridge_memory: "3072m"
+# working values include: 3072m, 6144m, 8192m
+# check if it works with java before change
+meet_jvb_nightly_restart: yes
 
 meet_repo_line: 'deb https://download.jitsi.org/ stable/'
 

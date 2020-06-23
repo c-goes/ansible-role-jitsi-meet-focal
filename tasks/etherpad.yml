@@ -1,17 +1,3 @@
-# todo:
-# als user etherpad in /opt/etherpad
-  # npm install sqlite3
-# lineinfile ändern
-
-# "dbType": "sqlite",
-# "dbSettings": {
-#   "filename": "var/sqlite_dirty.db"
-# }, 
-
-
-# welcome ändern per ansible
-
-#    "lang":             "de-de"
 
 
 - name: make sure git and nodejs are installed
@@ -26,6 +12,8 @@
     repo: https://github.com/ether/etherpad-lite.git
     version: master
     dest: /opt/etherpad
+  notify:
+    - restart etherpad
 
 
 - name: create user for etherpad
@@ -101,3 +89,37 @@
     block: |4
         etherpad_base: 'https://{{ meet_domain }}/etherpad/p/',
     state: present
+
+
+- name: install sqlite3 via npm
+  npm:
+    name: sqlite3
+    path: /opt/etherpad
+  become_user: etherpad
+  notify:
+    - restart etherpad
+  
+- name: etherpad configure for sqlite type
+  lineinfile:
+    path: /opt/etherpad/settings.json
+    regexp: '^[ ]*"dbType":.*'
+    line: '  "dbType": "sqlite",'
+  notify:
+    - restart etherpad
+
+- name: etherpad configure db filename
+  lineinfile:
+    path: /opt/etherpad/settings.json
+    regexp: '^[ ]*"filename":[ ]*"var/.*.db"'
+    line: '  "filename": "var/sqlite_dirty.db"'
+  notify:
+    - restart etherpad
+
+
+- name: change language to configured language
+  lineinfile:
+    path: /opt/etherpad/settings.json
+    regexp: '^[ ]*"lang":'
+    line: '    "lang":             "{{ etherpad_language }}"'
+  notify:
+    - restart etherpad
