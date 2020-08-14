@@ -5,6 +5,7 @@
   file:
     path: /usr/share/man/man1
     state: directory
+  when: molecule is defined
 
 - name: install my packages
   apt:
@@ -34,6 +35,18 @@
   stat:
     path: /etc/letsencrypt/live/{{ certbot_certs[0]["domains"][0] }}/fullchain.pem
   register: certbot_run
+  when: certbot_certs is defined
+
+- name: set variable to False initially
+  set_fact:
+    certbot_did_run: False
+
+- block:
+    - name: set variable to True when certbot did run
+      set_fact:
+        certbot_did_run: True
+      when: certbot_run.stat.exists
+  when: certbot_certs is defined and certbot_run is defined
 
 - name: copy snakeoil certs when certbot did not run yet
   copy:
@@ -43,7 +56,7 @@
   loop:
     - { s: '/etc/ssl/private/ssl-cert-snakeoil.key', d: '/etc/ssl/{{ meet_domain }}.key' }
     - { s: '/etc/ssl/certs/ssl-cert-snakeoil.pem', d: '/etc/ssl/{{ meet_domain }}.crt' }
-  when: not certbot_run.stat.exists
+  when: not certbot_did_run
   notify:
     - restart nginx
     - restart coturn

@@ -6,6 +6,7 @@
     meet_domain: meet.test
     meet_logo_url: ''
     meet_auth_type: anonymous
+    molecule: yes
   tasks:
     - name: "Include jitsi-meet-focal"
       include_role:

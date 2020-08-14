@@ -2,8 +2,13 @@
 # defaults file for jitsi-meet-focal
 
 meet_packages:
-    - jitsi-meet=2.0.4627-1
+    #- jitsi-meet=2.0.4627-1
+    - jitsi-meet-web=1.0.4127-1
+    - jitsi-meet-web-config=1.0.4127-1
+    - jitsi-meet-prosody=1.0.4127-1
     - jitsi-meet-turnserver=1.0.4127-1
+    - jitsi-videobridge2=2.1-202-g5f9377b9-1
+    - jicofo=1.0-589-1
     - lua-sec
     - lua-ldap
     - lua-basexx
