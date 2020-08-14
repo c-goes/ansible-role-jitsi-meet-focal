@@ -1,5 +1,3 @@
-
-
 - name: configure own stun server for p2p connections
   lineinfile:
     path: /etc/jitsi/meet/{{ meet_domain }}-config.js

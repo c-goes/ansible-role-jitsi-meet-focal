@@ -2,8 +2,6 @@
 # handlers file for jitsi-meet-focal
 
 
-
-
 - name: restart etherpad
   systemd:
     name: etherpad

@@ -1,4 +1,3 @@
-
 - name: configure statistic in videobridge (1)
   lineinfile:
     path: /etc/jitsi/videobridge/sip-communicator.properties
@@ -22,4 +21,3 @@
     line: 'JVB_OPTS="--apis=,"'
   notify:
     - restart jitsi-videobridge2
-

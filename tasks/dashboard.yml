@@ -43,9 +43,6 @@
         - influxdb
         - telegraf
 
-
-
-
 - name: configuration telegraf.conf
   copy:
     dest: /etc/telegraf/telegraf.conf

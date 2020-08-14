@@ -1,8 +1,5 @@
 ---
 
-
-
-
 - name: remove influxdb, telegraf, grafana
   apt:
     name:

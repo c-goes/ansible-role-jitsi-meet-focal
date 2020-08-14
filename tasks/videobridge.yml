@@ -1,4 +1,4 @@
-- name : Change jitsi-videobridge2 memory
+- name: Change jitsi-videobridge2 memory
   lineinfile:
     line: "VIDEOBRIDGE_MAX_MEMORY={{ meet_videobridge_memory }}"
     regexp: "^VIDEOBRIDGE_MAX_MEMORY=.*"

@@ -1,5 +1,3 @@
-
-
 - name: stop etherpad
   systemd:
     name: etherpad.service
@@ -7,13 +5,10 @@
     daemon_reload: yes
     state: stopped
 
-
 - name: systemd configured for etherpad
   file:
     path: /etc/systemd/system/etherpad.service
     state: absent
-
-
 
 - name: remove config in nginx for etherpad
   blockinfile:

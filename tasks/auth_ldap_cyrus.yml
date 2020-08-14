@@ -1,4 +1,3 @@
-
 - name: remove dependencies when ldap is disabled
   apt:
     name:
@@ -9,7 +8,6 @@
     autoremove: yes
     purge: yes
   when: state == "absent"
-
 
 - name: install dependencies for ldap
   apt:
