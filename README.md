@@ -24,6 +24,16 @@ Run this before Molecule:
 alias podman="systemd-run --user --scope podman"
 ```
 
+Now run molecule converge.
+
+Change `/etc/hosts`
+
+```
+127.0.0.1       localhost meet.test
+```
+
+Open https://meet.test for manual testing.
+
 Requirements
 ------------
 
