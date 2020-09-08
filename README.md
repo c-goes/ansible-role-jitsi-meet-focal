@@ -51,6 +51,24 @@ ansible-galaxy install -r requirements.yml
 Role Variables
 --------------
 
+- meet_etherpad (boolen), default: yes. *install Etherpad Lite when True*
+- meet_language (string), default: de. *language of Jitsi Meet installation*
+- etherpad_language (string), default: de *language of Etherpad Lite installation*
+- meet_auth_type: (string), default: internal_hashed (choices: internal_hashed, ldap, anonymous)
+- meet_allow_guest: (boolean), default: yes
+- meet_users: (list), default:
+  ```
+    - username: jitsi
+      password: meet
+  ```
+- meet_ldap_url (string)
+- meet_ldap_base (string)
+- meet_ldap_binddn (string)
+- meet_ldap_bindpw (string)
+- meet_ldap_filter (string)
+- meet_ldap_use_tls (boolean), default: yes
+- meet_ldap_check_peer (boolean), default: no
+
 
 Dependencies
 ------------
