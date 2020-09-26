@@ -1,12 +1,5 @@
 ---
 
-# for rootless molecule type:
-# echo 0 | sudo tee /proc/sys/net/ipv4/ip_unprivileged_port_start
-# tested with podman 2.0 on Ubuntu, uses privileged rootless container
-# for systemd in container to work on Ubuntu (see podman issue#6734),
-# run this command before molecule:
-# alias podman="systemd-run --user --scope podman"
-
 dependency:
   name: galaxy
 driver:
@@ -50,4 +43,4 @@ lint: |
   set -e
   yamllint .
   ansible-lint
-  flake8
+  # flake8

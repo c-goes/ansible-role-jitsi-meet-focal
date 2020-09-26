@@ -35,8 +35,8 @@
     # Ansible will automatically add the ".list" suffix.
     filename: /etc/apt/sources.list.d/telegraf
 
-
-- file:
+- name: absent telegraf and grafana files
+  file:
     path: "{{ item }}"
     state: absent
   loop:
@@ -50,9 +50,9 @@
     path: /etc/jitsi/videobridge/sip-communicator.properties
     regexp: '^org.jitsi.videobridge.ENABLE_STATISTICS='
     line: org.jitsi.videobridge.ENABLE_STATISTICS=false
-  notify:
+    notify:
     - restart jitsi-videobridge2
-  
+
 - name: configure statistic in videobridge (2)
   lineinfile:
     path: /etc/jitsi/videobridge/sip-communicator.properties
@@ -60,7 +60,7 @@
     line: org.jitsi.videobridge.STATISTICS_TRANSPORT=muc
   notify:
     - restart jitsi-videobridge2
-  
+
 - name: configure statistic in videobridge (3)
   lineinfile:
     path: /etc/jitsi/videobridge/config

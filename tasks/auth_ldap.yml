@@ -1,6 +1,7 @@
 ---
 
-- lineinfile:
+- name: consider bosh secure for prosody
+  lineinfile:
     path: /etc/prosody/prosody.cfg.lua
     line: consider_bosh_secure = true
     insertbefore: "^Include"
@@ -21,7 +22,7 @@
       -- https://modules.prosody.im/mod_lib_ldap.html
       -- https://modules.prosody.im/mod_auth_ldap2.html
       authentication = 'ldap2'
-      
+
       ldap = {
           hostname = '{{ meet_ldap_host }}',
           bind_dn = '{{ meet_ldap_binddn }}',
@@ -47,7 +48,6 @@
   notify:
     - restart prosody
 
-  
 - name: configure ldap.conf
   lineinfile:
     path: /etc/ldap/ldap.conf

@@ -93,7 +93,7 @@
     marker: "-- {mark} ANSIBLE MANAGED BLOCK ldap cyrus (prosody)"
     block: |
         cyrus_application_name = "xmpp"
-        allow_unencrypted_plain_auth = true   
+        allow_unencrypted_plain_auth = true
     insertbefore: ^[ ]+-- we need bosh.*
     state: "{{ state }}"
   notify:
@@ -105,7 +105,7 @@
     path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
     marker: "-- {mark} ANSIBLE MANAGED BLOCK enable auth_cyrus (prosody)"
     block: |
-        "auth_cyrus";   
+        "auth_cyrus";
     insertafter: '^[ ]+"bosh";'
     state: "{{ state }}"
   notify:

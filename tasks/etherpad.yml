@@ -32,8 +32,6 @@
     chdir: /opt/etherpad
   changed_when: false
 # TODO creates
-    
-
 
 - name: systemd configured for etherpad
   copy:
@@ -42,7 +40,7 @@
         [Unit]
         Description=Etherpad-lite, the collaborative editor.
         After=syslog.target network.target
-        
+
         [Service]
         Type=simple
         User=etherpad
@@ -51,7 +49,7 @@
         Environment=NODE_ENV=production
         ExecStart=/usr/bin/nodejs /opt/etherpad/node_modules/ep_etherpad-lite/node/server.js
         Restart=always
-        
+
         [Install]
         WantedBy=multi-user.target
 
@@ -93,10 +91,11 @@
   npm:
     name: sqlite3
     path: /opt/etherpad
+  become: yes
   become_user: etherpad
   notify:
     - restart etherpad
-  
+
 - name: etherpad configure for sqlite type
   lineinfile:
     path: /opt/etherpad/settings.json

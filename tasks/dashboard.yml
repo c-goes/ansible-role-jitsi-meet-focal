@@ -53,7 +53,7 @@
         ###############################################################################
         #                                  GLOBAL                                     #
         ###############################################################################
-        
+
         [agent]
             interval = "10s"
             debug = false
@@ -78,19 +78,19 @@
         ###############################################################################
         #                                  INPUTS                                     #
         ###############################################################################
-        
+
         [[inputs.http]]
             name_override = "jitsi_stats"
             urls = [
             "http://127.0.0.1:8080/colibri/stats"
             ]
-        
+
             data_format = "json"
-        
+
         ###############################################################################
         #                                  OUTPUTS                                    #
         ###############################################################################
-        
+
         [[outputs.influxdb]]
             urls = ["http://localhost:8086"]
             database = "jitsi"
@@ -106,7 +106,7 @@
     line: org.jitsi.videobridge.ENABLE_STATISTICS=true
   notify:
     - restart jitsi-videobridge2
-  
+
 - name: configure statistic in videobridge (2)
   lineinfile:
     path: /etc/jitsi/videobridge/sip-communicator.properties
@@ -114,7 +114,7 @@
     line: org.jitsi.videobridge.STATISTICS_TRANSPORT=muc,colibri
   notify:
     - restart jitsi-videobridge2
-  
+
 - name: configure statistic in videobridge (3)
   lineinfile:
     path: /etc/jitsi/videobridge/config

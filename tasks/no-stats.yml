@@ -5,7 +5,7 @@
     line: org.jitsi.videobridge.ENABLE_STATISTICS=false
   notify:
     - restart jitsi-videobridge2
-  
+
 - name: configure statistic in videobridge (2)
   lineinfile:
     path: /etc/jitsi/videobridge/sip-communicator.properties
@@ -13,7 +13,7 @@
     line: org.jitsi.videobridge.STATISTICS_TRANSPORT=muc
   notify:
     - restart jitsi-videobridge2
-  
+
 - name: configure statistic in videobridge (3)
   lineinfile:
     path: /etc/jitsi/videobridge/config
