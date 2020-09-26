@@ -91,8 +91,8 @@
   npm:
     name: sqlite3
     path: /opt/etherpad
-  become: yes
-  become_user: etherpad
+  # become: yes
+  # become_user: etherpad
   notify:
     - restart etherpad
 
