@@ -25,9 +25,6 @@ install:
   # Check ansible version
   - ansible --version
 
-  # Create ansible.cfg with correct roles_path
-  - printf '[defaults]\nroles_path=../' >ansible.cfg
-
 before_script:
   - cd ../
   - mv ansible-role-$ROLE_NAME c-goes.$ROLE_NAME
