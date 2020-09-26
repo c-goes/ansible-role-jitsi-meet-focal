@@ -10,4 +10,4 @@
   tasks:
     - name: "Include jitsi-meet-focal"
       include_role:
-        name: "jitsi-meet-focal"
+        name: "c-goes.jitsi-meet-focal"
