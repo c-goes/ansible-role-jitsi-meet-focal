@@ -42,5 +42,5 @@ verifier:
 lint: |
   set -e
   yamllint .
-  ansible-lint
+  # ansible-lint
   # flake8
