@@ -1,4 +1,4 @@
-jitsi-meet-focal
+jitsi-meet-focal [![Build Status](https://travis-ci.org/c-goes/ansible-role-jitsi-meet-focal.svg?branch=master)](https://travis-ci.org/c-goes/ansible-role-jitsi-meet-focal)
 =========
 
 Role for jitsi-meet with TURN server and Etherpad-Lite on Ubuntu 20.04 (not tested with any other version).
