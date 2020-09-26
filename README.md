@@ -9,19 +9,13 @@ Different from SWITCH's code, this role focuses on self-contained deployments wi
 Molecule
 ---------
 
-This role is tested via Molecule and Podman.
+This role is tested via Docker on Travis CI.
 
+It's also possible to test it locally with Podman rootless.
 To run Molecule and Podman rootless use:
 
 ```
 echo 0 | sudo tee /proc/sys/net/ipv4/ip_unprivileged_port_start
-```
-
-For systemd to work in container on Ubuntu, a workaround is needed since Podman 2.0 (see podman issue#6734).
-Run this before Molecule:
-
-```
-alias podman="systemd-run --user --scope podman"
 ```
 
 Now run molecule converge.
@@ -32,7 +26,7 @@ Change `/etc/hosts`
 127.0.0.1       localhost meet.test
 ```
 
-Open https://meet.test for manual testing.
+Open https://meet.test for manual testing (HTTPS is always needed for WebRTC to work).
 
 Requirements
 ------------

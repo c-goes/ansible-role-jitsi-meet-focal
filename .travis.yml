@@ -1,19 +1,26 @@
 ---
 language: python
-python: "2.7"
+services: docker
 
-# Use the new container infrastructure
-sudo: false
+
+env:
+  global:
+    - ROLE_NAME: jitsi-meet-focal
+  matrix:
+    - MOLECULE_DISTRO: ubuntu2004
+    # - MOLECULE_DISTRO: ubuntu1804
+    # - MOLECULE_DISTRO: debian10
+
+
 
 # Install ansible
 addons:
   apt:
     packages:
-    - python-pip
+    - python3-pip
 
 install:
-  # Install ansible
-  - pip install ansible
+  - pip3 install molecule yamllint ansible-lint docker ansible
 
   # Check ansible version
   - ansible --version
@@ -21,9 +28,13 @@ install:
   # Create ansible.cfg with correct roles_path
   - printf '[defaults]\nroles_path=../' >ansible.cfg
 
-script:
-  # Basic role syntax check
-  - ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+before_script:
+  - cd ../
+  - mv ansible-role-$ROLE_NAME c-goes.$ROLE_NAME
+  - cd c-goes.$ROLE_NAME
 
-notifications:
-  webhooks: https://galaxy.ansible.com/api/v1/notifications/
+script:
+  - molecule test --scenario-name docker
+
+# notifications:
+#   webhooks: https://galaxy.ansible.com/api/v1/notifications/
