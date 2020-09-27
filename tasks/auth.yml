@@ -2,6 +2,7 @@
   assert:
     that:
         - meet_auth_type in ['ldap', 'ldap2', 'internal_hashed', 'anonymous']
+  changed_when: false
 
 
 - name: configure jicofo for authentication (only when it's not jwt)

@@ -30,6 +30,8 @@
   command: /opt/etherpad/bin/installDeps.sh
   args:
     chdir: /opt/etherpad
+  become: yes
+  become_user: etherpad
   changed_when: false
 # TODO creates
 
@@ -86,13 +88,19 @@
         etherpad_base: 'https://{{ meet_domain }}/etherpad/p/',
     state: present
 
+- name: set owner/group for service files
+  file:
+    path: "/opt/etherpad"
+    owner: "etherpad"
+    group: "etherpad"
+    recurse: yes
 
 - name: install sqlite3 via npm
   npm:
     name: sqlite3
     path: /opt/etherpad
-  # become: yes
-  # become_user: etherpad
+  become: yes
+  become_user: etherpad
   notify:
     - restart etherpad
 
