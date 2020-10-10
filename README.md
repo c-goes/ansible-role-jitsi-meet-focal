@@ -75,8 +75,8 @@ Role Variables
 - meet_ldap_filter (string)
 - meet_ldap_use_tls (boolean), default: yes
 - meet_ldap_check_peer (boolean), default: no
-- float4 (Hetzner floating IPv4 address)
-- float6 (Hetzner floating IPv6 address)
+- float4 (string, Hetzner floating IPv4 address, without subnet mask)
+- float6 (string, Hetzner floating IPv6 address, with subnet mask)
 
 
 Dependencies
