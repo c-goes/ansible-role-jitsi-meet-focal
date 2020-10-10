@@ -1,8 +1,7 @@
 - name: only accept supported auth types
   assert:
     that:
-        - meet_auth_type in ['ldap', 'ldap2', 'internal_hashed', 'anonymous']
-  changed_when: false
+        - meet_auth_type in ['ldap', 'ldap2', 'internal_hashed', 'anonymous', 'dovecot']
 
 
 - name: configure jicofo for authentication (only when it's not jwt)
@@ -122,3 +121,9 @@
 - name: enable ldap
   include: auth_ldap_cyrus.yml state=present
   when: meet_auth_type is defined and meet_auth_type == 'ldap'
+
+
+
+- name: enable ldap via dovecot
+  include: auth_dovecot_ldap.yml state=present
+  when: meet_auth_type is defined and meet_auth_type == 'dovecot'

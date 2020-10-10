@@ -1,6 +1,28 @@
 ---
 # tasks file for jitsi-meet-focal
 
+
+- name: configure floating ip
+  blockinfile:
+    create: yes
+    path: /etc/netplan/60-floating-ip.yaml
+    block: |
+      network:
+        version: 2
+        ethernets:
+          eth0:
+            addresses:
+            - {{ float4 }}/32
+            - {{ float6 }}
+  when: float4 is defined and float6 is defined
+  register: float_conf
+
+
+- name: apply floating ip
+  command: netplan apply
+  when: float_conf.changed
+
+
 - name: directory needed for molecule tests with specific docker image
   file:
     path: /usr/share/man/man1
@@ -94,6 +116,7 @@
     name: "{{ meet_packages }}"
     update_cache: yes
 
+
 - name: When floating ipv4 is defined, set it as external for coturn
   lineinfile:
     path: /etc/turnserver.conf
@@ -133,6 +156,58 @@
 
 - name: configure for own stun / turn
   include: stun_turn.yml
+  when: meet_own_turn
+
+
+
+# Basic Tuning begin
+
+- name: Change channelLastN to 4
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*channelLastN: '
+    insertafter: '^[ ]*// Default value for the channel'
+    line: '    channelLastN: 4,'
+  when: meet_basic_tuning
+
+- name: Enable layer suspension
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*enableLayerSuspension: '
+    insertafter: '^[ ]*// enableLayerSuspension: '
+    line: '    enableLayerSuspension: true,'
+  when: meet_basic_tuning
+
+
+- name: Own resolution to 240
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*resolution: '
+    insertafter: '^[ ]*// resolution: '
+    line: '    resolution: 240,'
+  when: meet_basic_tuning
+
+
+- name: set resolution constraints
+  blockinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+
+    marker: "// {mark} ANSIBLE MANAGED BLOCK for resolution constraints"
+    block: |
+      constraints: {
+           video: {
+               height: {
+                   ideal: 480,
+                   max: 480,
+                   min: 240
+               }
+           }
+       },
+    insertafter: '^[ ]+// resolution of 720p'
+    state: present
+  when: meet_basic_tuning
+
+# Basic Tuning end
 
 
 
@@ -151,12 +226,12 @@
     insertafter: '^[ ]*// defaultLanguage: '
     line: "    defaultLanguage: '{{ meet_language }}',"
 
-- name: enable ipv6
-  lineinfile:
-    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
-    regexp: '^[ ]*useIPv6: '
-    insertafter: '^[ ]*// useIPv6: '
-    line: "    useIPv6: true,"
+# - name: enable ipv6
+#   lineinfile:
+#     path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+#     regexp: '^[ ]*useIPv6: '
+#     insertafter: '^[ ]*// useIPv6: '
+#     line: "    useIPv6: true,"
 
 
 - name: configure certbot cron for stop/start of services
@@ -231,3 +306,8 @@
 # - include: no-stats.yml
 
 - include: videobridge.yml
+
+- include: streaming.yml
+  when: meet_stream_any
+  tags:
+    - jibri

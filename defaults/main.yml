@@ -1,17 +1,27 @@
 ---
 # defaults file for jitsi-meet-focal
 
+
+meet_basic_tuning: False
+meet_stream_any: False
+meet_own_turn: True
+
 meet_packages:
-    #- jitsi-meet=2.0.4627-1
-    - jitsi-meet-web=1.0.4127-1
-    - jitsi-meet-web-config=1.0.4127-1
-    - jitsi-meet-prosody=1.0.4127-1
-    - jitsi-meet-turnserver=1.0.4127-1
-    - jitsi-videobridge2=2.1-202-g5f9377b9-1
-    - jicofo=1.0-589-1
-    - lua-sec
-    - lua-ldap
-    - lua-basexx
+  #- jitsi-meet=2.0.4627-1
+  - jitsi-meet=2.0.5076-1
+  - jitsi-meet-web=1.0.4428-1
+  - jitsi-meet-web-config=1.0.4428-1
+  - jitsi-meet-prosody=1.0.4428-1
+  - jitsi-meet-turnserver=1.0.4428-1
+  - coturn
+  - jitsi-videobridge2=2.1-351-g0bfaac1c-1
+  - jicofo=1.0-636-1
+  - lua-sec
+  - lua-ldap
+  - lua-basexx
+
+meet_streaming_packages:
+  - jibri=8.0-0-ge9fa56a-1
 
 meet_etherpad: yes
 
@@ -44,7 +54,9 @@ meet_watermark_link: 'https://jitsi.org'
 meet_videobridge_memory: "3072m"
 # working values include: 3072m, 6144m, 8192m
 # check if it works with java before change
+
 meet_jvb_nightly_restart: yes
+# prevent jvb processes keep running forever
 
 meet_repo_line: 'deb https://download.jitsi.org/ stable/'
 

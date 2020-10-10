@@ -4,3 +4,62 @@
             </div>
         </template>
 
+<template id = "welcome-page-additional-content-template">
+    <div class="welcome-page-content">
+        <div class="welcome-footer">
+            <div class="welcome-footer-content">
+                <div class="welcome-footer-about">
+                    <div>
+                        <a style="color: #fff;" href="{{ meet_imprint_url }}" rel="noopener" target="_blank">Impressum</a> | <a style="color: #fff;" href="{{ meet_privacy_url }}" rel="noopener" target="_blank">Datenschutz</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style>
+    .welcome-page-content {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+        position: relative;
+        z-index: 1;
+        margin-top: 35px;
+        width: 100%
+    }
+    .welcome-page-content .welcome-footer {
+        color: #FFF;
+        display: flex;
+        padding-bottom: 20px;
+        padding-top: 20px;
+        width: 100%;
+        z-index: 1
+    }
+    .welcome-page-content .welcome-footer-content a {
+        color: #fff !important;
+        text-decoration: underline
+    }
+
+    .welcome-page-content .welcome-footer-content {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        z-index: 2
+    }
+
+    .welcome-page-content .welcome-footer-about {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        font-size: 14px;
+        line-height: 20px;
+        text-align: center;
+        justify-content: center
+    }
+
+    .welcome-page-content .welcome-footer-about:last-child {
+        margin-left: 4px
+    }
+</style>

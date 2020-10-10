@@ -1,0 +1,203 @@
+
+
+
+- name: Add an Apt signing key, uses whichever key is at the URL
+  apt_key:
+    url: https://dl-ssl.google.com/linux/linux_signing_key.pub
+    state: present
+
+
+
+- name: Add specified repository into sources list
+  apt_repository:
+    repo: "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main"
+    state: present
+    mode: 0600
+
+
+- name: install ffmpeg
+  apt:
+    update_cache: yes
+    name:
+      - ffmpeg
+      - unzip
+      - curl
+      - alsa-utils
+      - icewm
+      - xdotool
+      - xserver-xorg-input-void
+      - xserver-xorg-video-dummy
+      - google-chrome-stable
+      - linux-generic-hwe-20.04
+
+# - name: folder for ffmpeg script
+#   file:
+#     path: /opt/util
+#     state: directory
+
+- name: Add linux-image-extra-virtual
+  apt:
+    name: linux-image-extra-virtual
+    update_cache: yes
+    state: present
+
+- name: Add line to /etc/modules
+  lineinfile:
+    line: "snd-aloop"
+    path: /etc/modules
+    regexp: '^snd-aloop'
+
+- name: Add the snd-aloop kernel module
+  modprobe:
+    name: snd-aloop
+
+
+- name: Create dir /etc/opt/chrome/policies/managed
+  file:
+    path: /etc/opt/chrome/policies/managed
+    state: directory
+    owner: root
+    group: root
+
+- name: Add google managed.policy
+  lineinfile:
+    line: '{ "CommandLineFlagSecurityWarningsEnabled": false }'
+    path: "/etc/opt/chrome/policies/managed/managed_policies.json"
+    regexp: '^{ "CommandLineFlagSecurityWarningsEnabled"'
+    create: yes
+
+- name: Get current google release
+  uri:
+    url: http://chromedriver.storage.googleapis.com/LATEST_RELEASE
+    return_content: yes
+  register: googleversion
+
+- debug: msg="GoogleVersion - {{ googleversion.content }}"
+
+
+- name: Unarchive a file that needs to be downloaded (added in 2.0)
+  unarchive:
+    src: http://chromedriver.storage.googleapis.com/{{ googleversion.content }}/chromedriver_linux64.zip
+    dest: /usr/local/bin/
+    remote_src: yes
+    owner: root
+    group: root
+    mode: '0755'
+    creates: /usr/local/bin/chromedriver
+
+
+- name: Install jibri
+  apt:
+    name: jibri
+    state: present
+    update_cache: yes
+
+- name: Add jibri user to required groups
+  user:
+    name: jibri
+    groups: adm,audio,video,plugdev
+    append: yes
+
+- name: Create recordings folder
+  file:
+    path: "/srv/recordings"
+    state: directory
+    owner: jibri
+    group: jitsi
+
+
+# TODO: Variable
+- name: ffmpeg script
+  copy:
+    dest: /usr/local/bin/ffmpeg
+    content: |
+      #!/bin/bash
+
+      COMMAND="/usr/bin/ffmpeg"
+      
+      while test $# -gt 0
+      do
+          T="$1"
+          if [ "${1:0:32}" == "rtmp://a.rtmp.youtube.com/live2/" ]; then
+              # T  will contain the rtmp key from jitsi meet page. Make sure you use the correct IP Address OF the rtmp server you setup earlier
+              COMMAND="$COMMAND {{ meet_stream_url }}/${T:32}"             
+          else
+              COMMAND="$COMMAND $T"
+          fi
+          shift
+      done
+      
+      echo "RUNNING FFMPEG: «$COMMAND»."
+      
+      exec $COMMAND
+      PROCESS_FFMPEG=$!
+      
+      echo "Esperando finalización del proceso: ${PROCESO_FFMPEG}."
+      wait $PROCESS_FFMPEG
+    mode: 0777
+
+- name: settings for muc (jibri jigasi)
+  blockinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK for muc (jibri jigasi)"
+    block: |
+      storage = "memory"
+      muc_room_cache_size = 1000
+    insertafter: '^[\s]*muc_room_default_public_jids'
+    state: present
+  notify:
+    - restart prosody
+
+
+
+
+- name: settings for recorder
+  blockinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    marker: "-- {mark} ANSIBLE MANAGED BLOCK for recorder (jibri)"
+    block: |
+
+      VirtualHost "recorder.{{ meet_domain }}"
+      modules_enabled = {
+          "ping";
+      }
+      authentication = "internal_plain"
+    insertafter: '^[\s]*muc_room_cache_size'
+    state: present
+  notify:
+    - restart prosody
+
+# - name: prosody user for jibri
+#   command: prosodyctl register jibri auth.{{ meet_domain }} {{ meet_jibri_password }}
+#   changed_when: False
+# - name: prosody user for recorder
+#   command: prosodyctl register recorder recorder.{{ meet_domain }} {{ meet_recorder_password }}
+#   changed_when: False
+
+
+
+- name: configure jibri in jicofo
+  lineinfile:
+    path: /etc/jitsi/jicofo/sip-communicator.properties
+    regexp: '^org.jitsi.jicofo.jibri.BREWERY='
+    insertbefore: EOF
+    line: org.jitsi.jicofo.jibri.BREWERY=JibriBrewery@internal.auth.{{ meet_domain }}
+    state: present
+  when: meet_auth_type and meet_auth_type == "jwt"
+  notify:
+    - restart jicofo
+
+
+- name: configure jibri in jicofo (2)
+  lineinfile:
+    path: /etc/jitsi/jicofo/sip-communicator.properties
+    regexp: '^org.jitsi.jicofo.jibri.PENDING_TIMEOUT='
+    insertbefore: EOF
+    line: org.jitsi.jicofo.jibri.PENDING_TIMEOUT=90
+    state: present
+  when: meet_auth_type and meet_auth_type == "jwt"
+  notify:
+    - restart jicofo
+
+
+

@@ -6,6 +6,19 @@ Role for jitsi-meet with TURN server and Etherpad-Lite on Ubuntu 20.04 (not test
 This role includes code from [SWITCH](https://github.com/switch-ch/jitsi-deploy).
 Different from SWITCH's code, this role focuses on self-contained deployments with one machine for each deployment.
 
+
+Community Chat
+----------------
+
+This role has a community chat at https://gitter.im/ansible-role-jitsi-meet-focal/community
+
+
+LDAP support
+-------------
+
+This role supports two ways to enable LDAP (`ldap` and `ldap2`). A third one will be added soon.
+One of them (`ldap`) is known to work reliably with *paedML Novell* from Landesmedienzentrum Baden-Württemberg.
+
 Molecule
 ---------
 
@@ -48,7 +61,7 @@ Role Variables
 - meet_etherpad (boolen), default: yes. *install Etherpad Lite when True*
 - meet_language (string), default: de. *language of Jitsi Meet installation*
 - etherpad_language (string), default: de *language of Etherpad Lite installation*
-- meet_auth_type: (string), default: internal_hashed (choices: internal_hashed, ldap, anonymous)
+- meet_auth_type: (string), default: internal_hashed (choices: internal_hashed, ldap, ldap2, anonymous)
 - meet_allow_guest: (boolean), default: yes
 - meet_users: (list), default:
   ```
@@ -62,6 +75,8 @@ Role Variables
 - meet_ldap_filter (string)
 - meet_ldap_use_tls (boolean), default: yes
 - meet_ldap_check_peer (boolean), default: no
+- float4 (Hetzner floating IPv4 address)
+- float6 (Hetzner floating IPv6 address)
 
 
 Dependencies
