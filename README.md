@@ -7,12 +7,6 @@ This role includes code from [SWITCH](https://github.com/switch-ch/jitsi-deploy)
 Different from SWITCH's code, this role focuses on self-contained deployments with one machine for each deployment.
 
 
-Community Chat
-----------------
-
-This role has a community chat at https://gitter.im/ansible-role-jitsi-meet-focal/community
-
-
 LDAP support
 -------------
 
