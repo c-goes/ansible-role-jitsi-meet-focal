@@ -16,7 +16,7 @@
     - restart jicofo
 
 
-- name: configure jicofo for authentication (only when it's not jwt)
+- name: configure jicofo for authentication (only when it's jwt)
   lineinfile:
     path: /etc/jitsi/jicofo/sip-communicator.properties
     regexp: '^org.jitsi.jicofo.auth.URL='
