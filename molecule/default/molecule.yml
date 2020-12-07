@@ -25,7 +25,7 @@ platforms:
     #   - /sys/fs/cgroup:/sys/fs/cgroup:ro
     
     
-    privileged: true
+    # privileged: true
 
 
 provisioner:

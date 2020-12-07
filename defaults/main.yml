@@ -4,6 +4,7 @@
 
 meet_basic_tuning: False
 meet_stream_any: False
+meet_record_any: False
 meet_own_turn: True
 
 meet_packages:
@@ -20,8 +21,6 @@ meet_packages:
   - lua-ldap
   - lua-basexx
 
-meet_streaming_packages:
-  - jibri=8.0-0-ge9fa56a-1
 
 meet_etherpad: yes
 

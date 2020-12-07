@@ -82,13 +82,14 @@
     - restart jicofo
 
 
-# TODO
+
 - name: enable file recodings
   lineinfile:
     path: /etc/jitsi/meet/{{ meet_domain }}-config.js
     regexp: '^[ ]*fileRecordingsEnabled: '
     insertafter: '^[ ]*// fileRecordingsEnabled: '
-    line: '    fileRecordingsEnabled: true,'
+    line: '    fileRecordingsEnabled: false,'
+  when: meet_record_any
 
 - name: enable live streaming
   lineinfile:
@@ -96,6 +97,7 @@
     regexp: '^[ ]*liveStreamingEnabled: '
     insertafter: '^[ ]*// liveStreamingEnabled: '
     line: '    liveStreamingEnabled: true,'
+
 
 - name: hidden domain for recorder domain
   lineinfile:

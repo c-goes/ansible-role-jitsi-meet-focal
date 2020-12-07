@@ -311,3 +311,19 @@
   when: meet_stream_any
   tags:
     - jibri
+
+- name: disable file recodings
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*fileRecordingsEnabled: '
+    insertafter: '^[ ]*// fileRecordingsEnabled: '
+    line: '    fileRecordingsEnabled: false,'
+  when: not meet_record_any
+
+- name: disable live streaming
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*liveStreamingEnabled: '
+    insertafter: '^[ ]*// liveStreamingEnabled: '
+    line: '    liveStreamingEnabled: true,'
+  when: not meet_stream_any
