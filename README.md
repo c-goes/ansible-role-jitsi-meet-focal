@@ -6,13 +6,6 @@ Role for jitsi-meet with TURN server and Etherpad-Lite on Ubuntu 20.04 (not test
 This role includes code from [SWITCH](https://github.com/switch-ch/jitsi-deploy).
 Different from SWITCH's code, this role focuses on self-contained deployments with one machine for each deployment.
 
-
-LDAP support
--------------
-
-This role supports two ways to enable LDAP (`ldap` and `ldap2`). A third one will be added soon.
-One of them (`ldap`) is known to work reliably with *paedML Novell* from Landesmedienzentrum Baden-Württemberg.
-
 Molecule
 ---------
 
