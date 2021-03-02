@@ -1,3 +1,19 @@
+- name: disable welcome footer
+  lineinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    regexp: '^[ ]+DISPLAY_WELCOME_FOOTER:'
+    line: "    DISPLAY_WELCOME_FOOTER: false,"
+
+
+
+- name: enable additional content for welcome page
+  lineinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    regexp: '^[ ]+DISPLAY_WELCOME_PAGE_CONTENT:'
+    line: "    DISPLAY_WELCOME_PAGE_CONTENT: true,"
+  when: meet_imprint_url is defined and meet_privacy_url is defined
+
+
 - name: add additional html
   template:
     src: additional.html.j2
@@ -21,7 +37,7 @@
             width: 100%
         }
         .welcome-page-content .welcome-footer {
-            color: #FFF;
+            color: #000;
             display: flex;
             padding-bottom: 20px;
             padding-top: 20px;
@@ -29,7 +45,7 @@
             z-index: 1
         }
         .welcome-page-content .welcome-footer-content a {
-            color: #fff !important;
+            color: #000 !important;
             text-decoration: underline
         }
 
@@ -54,6 +70,25 @@
             margin-left: 4px
         }
       </style>
+
+
+- name: enable png watermarks if needed
+  lineinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    regexp: '^[ ]+DEFAULT_WELCOME_PAGE_LOGO_URL:'
+    line: "    DEFAULT_WELCOME_PAGE_LOGO_URL: 'images/watermark.png',"
+  when: meet_watermark_loc is defined and meet_watermark_loc.endswith(".png")
+
+
+
+- name: change watermark size
+  replace:
+    path: /usr/share/jitsi-meet/css/all.css
+    regexp: 'width:71px;height:32px'
+    replace: 'width:140px;height:70px'
+    backup: yes
+  when: meet_watermark_loc is defined
+
 
 - name: copy new logo
   copy:
