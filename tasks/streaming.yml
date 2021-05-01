@@ -105,5 +105,28 @@
     line: "    hiddenDomain: 'recorder.{{ meet_domain }}',"
 
 
+- name: enable file recodings
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*fileRecordingsEnabled: '
+    insertafter: '^[ ]*// fileRecordingsEnabled: '
+    line: '    fileRecordingsEnabled: false,'
+  when: meet_record_any
+
+- name: enable live streaming
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*liveStreamingEnabled: '
+    insertafter: '^[ ]*// liveStreamingEnabled: '
+    line: '    liveStreamingEnabled: true,'
+
+
+- name: hidden domain for recorder domain
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*hiddenDomain: '
+    insertbefore: '^[ ]*// prevent fear when commenting out the last value'
+    line: "    hiddenDomain: 'recorder.{{ meet_domain }}',"
+
 
 # port 52222

@@ -1,0 +1,116 @@
+
+- name: configure jicofo for authentication (only jwt)
+  lineinfile:
+    path: /etc/jitsi/jicofo/sip-communicator.properties
+    regexp: '^org.jitsi.jicofo.auth.URL='
+    insertbefore: EOF
+    line: org.jitsi.jicofo.auth.URL=EXT_JWT:{{ meet_domain }}
+    state: present
+  when: meet_auth_type and meet_auth_type == "jwt"
+  notify:
+    - restart jicofo
+
+
+- name: install gcc
+  apt:
+    name:
+      - gcc
+      - liblua5.2-dev
+
+
+
+
+- name: Set debconf options for jitsi-meet-tokens
+  debconf:
+    name: "{{ item.name }}"
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  with_items:
+    - name: jitsi-meet-tokens
+      question: jitsi-meet-tokens/appsecret
+      value: "{{ meet_jwt_appsecret }}"
+      vtype: password
+    - name: jitsi-meet-tokens
+      question: jitsi-meet-tokens/appid
+      value: "{{ meet_jwt_appid }}"
+      vtype: string
+  notify:
+    - restart jicofo
+    - restart prosody
+
+- name: install jitsi-meet-tokens
+  apt:
+    name:
+      - "{{ meet_tokens_package }}"
+  when: meet_auth_type and meet_auth_type == "jwt"
+
+
+- name: purge jitsi-meet-tokens
+  apt:
+    name: jitsi-meet-tokens
+    purge: yes
+    state: absent
+
+
+
+- name: Set debconf options for jitsi-meet-tokens
+  debconf:
+    name: "{{ item.name }}"
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  with_items:
+    - name: jitsi-meet-tokens
+      question: jitsi-meet-tokens/appsecret
+      value: "{{ meet_jwt_appsecret }}"
+      vtype: password
+    - name: jitsi-meet-tokens
+      question: jitsi-meet-tokens/appid
+      value: "{{ meet_jwt_appid }}"
+      vtype: string
+  notify:
+    - restart jicofo
+    - restart prosody
+
+- name: install jitsi-meet-tokens
+  apt:
+    name:
+      - "{{ meet_tokens_package }}"
+  when: meet_auth_type and meet_auth_type == "jwt"
+
+
+
+
+
+#tokenAuthUrl: "https://127.0.0.1/login.html?room={room}&roleUpgrade={roleUpgrade}"
+- name: configure tokenAuthUrl
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*tokenAuthUrl: '
+    insertbefore: '^[ ]*// Connection'
+    line: '    tokenAuthUrl: "{{ meet_jwt_auth_url }}",'
+  when: meet_jwt_auth_url is defined
+
+
+- name: configure nginx for an jwt app
+  blockinfile:
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for jwt app config"
+    path: /etc/nginx/sites-enabled/{{ meet_domain }}.conf
+    insertbefore: "^[ ]+# BOSH for subdomains"
+    block: |
+        # JWT auth app
+        location ^~ /auth/ {
+            proxy_pass http://localhost:5000/;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_buffering off;
+            proxy_set_header       Host $host;
+        }
+        location ^~ /admin/ {
+            proxy_pass http://localhost:5000/;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_buffering off;
+            proxy_set_header       Host $host;
+        }
+  notify:
+    - restart nginx

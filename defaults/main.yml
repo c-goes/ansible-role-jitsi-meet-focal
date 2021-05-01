@@ -4,24 +4,24 @@
 
 meet_basic_tuning: False
 meet_stream_any: False
+meet_record_any: False
 meet_own_turn: True
 
 meet_packages:
-  #- jitsi-meet=2.0.4627-1
-  - jitsi-meet=2.0.5076-1
-  - jitsi-meet-web=1.0.4428-1
-  - jitsi-meet-web-config=1.0.4428-1
-  - jitsi-meet-prosody=1.0.4428-1
-  - jitsi-meet-turnserver=1.0.4428-1
+#  - jitsi-meet=2.0.5390-3
+  - jitsi-meet-web=1.0.4628-1
+  - jitsi-meet-web-config=1.0.4628-1
+  - jitsi-meet-prosody=1.0.4628-1
+  - jitsi-meet-turnserver=1.0.4628-1
   - coturn
-  - jitsi-videobridge2=2.1-351-g0bfaac1c-1
-  - jicofo=1.0-636-1
+  - jitsi-videobridge2=2.1-416-g2f43d1b4-1
+  - jicofo=1.0-690-1
   - lua-sec
   - lua-ldap
   - lua-basexx
 
-meet_streaming_packages:
-  - jibri=8.0-0-ge9fa56a-1
+
+meet_tokens_package: jitsi-meet-tokens=1.0.4628-1
 
 meet_etherpad: yes
 
@@ -33,6 +33,7 @@ etherpad_language: de-de
 meet_auth_type: internal_hashed
 # allow guests in meetings (no need for authentication):
 meet_allow_guest: yes
+
 
 # default user is jitsi/meet
 meet_users:

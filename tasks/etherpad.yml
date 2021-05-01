@@ -10,6 +10,7 @@
     repo: https://github.com/ether/etherpad-lite.git
     version: master
     dest: /opt/etherpad
+    force: yes
   notify:
     - restart etherpad
 
