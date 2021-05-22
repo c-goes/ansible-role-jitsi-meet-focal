@@ -10,7 +10,7 @@
             <div class="welcome-footer-content">
                 <div class="welcome-footer-about">
                     <div>
-                        <a style="color: #000;" href="{{ meet_imprint_url }}" rel="noopener" target="_blank">Impressum</a> | <a style="color: #000;" href="{{ meet_privacy_url }}" rel="noopener" target="_blank">Datenschutz</a>
+                        <a style="color: #000;" href="{{ meet_imprint_url }}" rel="noopener" target="_blank">Impressum</a> | <a style="color: #000;" href="{{ meet_privacy_url }}" rel="noopener" target="_blank">Datenschutz</a> {% if meet_logout_url is defined %}  | <a style="color: #000;" href="{{ meet_logout_url }}" rel="noopener" target="_blank">Logout</a>{% endif %}
                     </div>
                 </div>
             </div>

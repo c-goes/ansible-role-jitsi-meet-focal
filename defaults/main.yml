@@ -21,7 +21,14 @@ meet_packages:
   - lua-basexx
 
 
+meet_stats: no
+
 meet_tokens_package: jitsi-meet-tokens=1.0.4628-1
+meet_version_token_moderation: 52811f0eda102c61134dc3cf33c7889fa929c282
+
+meet_enable_token_moderation_plugin: no
+meet_require_display_name: no
+meet_disable_profile: no
 
 meet_etherpad: yes
 

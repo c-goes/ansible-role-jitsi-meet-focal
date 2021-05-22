@@ -303,7 +303,9 @@
 
 # - include: no-dashboard.yml
 
-# - include: no-stats.yml
+- include: stats.yml
+  when: meet_stats
+
 
 - include: videobridge.yml
 
@@ -327,3 +329,35 @@
     insertafter: '^[ ]*// liveStreamingEnabled: '
     line: '    liveStreamingEnabled: true,'
   when: not meet_stream_any
+
+- name: disable jitsi meet profile if needed
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*disableProfile: '
+    insertafter: '^[ ]*// disableProfile: '
+    line: '    disableProfile: true,'
+  when: meet_disable_profile
+
+
+- name: enable jitsi meet profile if needed
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*disableProfile: '
+    state: absent
+  when: not meet_disable_profile
+
+- name: enable meet_require_display_name if needed
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*requireDisplayName: '
+    insertbefore: '^[ ]*// Whether or not some features'
+    line: '    requireDisplayName: true,'
+  when: meet_require_display_name
+
+- name: disable meet_require_display_name if needed
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*requireDisplayName: '
+    state: absent
+  when: not meet_require_display_name
+

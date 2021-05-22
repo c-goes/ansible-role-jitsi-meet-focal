@@ -72,11 +72,19 @@
       </style>
 
 
-- name: enable png watermarks if needed
+- name: enable png watermarks for welcomepage if needed
   lineinfile:
     path: /usr/share/jitsi-meet/interface_config.js
     regexp: '^[ ]+DEFAULT_WELCOME_PAGE_LOGO_URL:'
     line: "    DEFAULT_WELCOME_PAGE_LOGO_URL: 'images/watermark.png',"
+  when: meet_watermark_loc is defined and meet_watermark_loc.endswith(".png")
+
+
+- name: enable png watermarks if needed
+  lineinfile:
+    path: /usr/share/jitsi-meet/interface_config.js
+    regexp: '^[ ]+DEFAULT_LOGO_URL:'
+    line: "    DEFAULT_LOGO_URL: 'images/watermark.png',"
   when: meet_watermark_loc is defined and meet_watermark_loc.endswith(".png")
 
 

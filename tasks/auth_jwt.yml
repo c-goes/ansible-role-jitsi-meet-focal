@@ -6,7 +6,6 @@
     insertbefore: EOF
     line: org.jitsi.jicofo.auth.URL=EXT_JWT:{{ meet_domain }}
     state: present
-  when: meet_auth_type and meet_auth_type == "jwt"
   notify:
     - restart jicofo
 
@@ -43,7 +42,6 @@
   apt:
     name:
       - "{{ meet_tokens_package }}"
-  when: meet_auth_type and meet_auth_type == "jwt"
 
 
 - name: purge jitsi-meet-tokens
@@ -77,9 +75,14 @@
   apt:
     name:
       - "{{ meet_tokens_package }}"
-  when: meet_auth_type and meet_auth_type == "jwt"
 
 
+- name: disable hint to jitsi app to prevent user from seeing app's login screen
+  lineinfile:
+    path: /etc/jitsi/meet/{{ meet_domain }}-config.js
+    regexp: '^[ ]*disableDeepLinking: '
+    insertbefore: '^[ ]*// disableDeepLinking'
+    line: '    disableDeepLinking: true,'
 
 
 
@@ -93,24 +96,79 @@
   when: meet_jwt_auth_url is defined
 
 
-- name: configure nginx for an jwt app
-  blockinfile:
-    marker: "# {mark} ANSIBLE MANAGED BLOCK for jwt app config"
-    path: /etc/nginx/sites-enabled/{{ meet_domain }}.conf
-    insertbefore: "^[ ]+# BOSH for subdomains"
-    block: |
-        # JWT auth app
-        location ^~ /auth/ {
-            proxy_pass http://localhost:5000/;
-            proxy_set_header X-Forwarded-For $remote_addr;
-            proxy_buffering off;
-            proxy_set_header       Host $host;
-        }
-        location ^~ /admin/ {
-            proxy_pass http://localhost:5000/;
-            proxy_set_header X-Forwarded-For $remote_addr;
-            proxy_buffering off;
-            proxy_set_header       Host $host;
-        }
+# - name: configure nginx for an jwt app
+#   blockinfile:
+#     marker: "# {mark} ANSIBLE MANAGED BLOCK for jwt app config"
+#     path: /etc/nginx/sites-enabled/{{ meet_domain }}.conf
+#     insertbefore: "^[ ]+# BOSH for subdomains"
+#     block: |
+#         # JWT auth app
+#         location ^~ /auth/ {
+#             proxy_pass http://localhost:5000/;
+#             proxy_set_header X-Forwarded-For $remote_addr;
+#             proxy_buffering off;
+#             proxy_set_header       Host $host;
+#         }
+#         location ^~ /admin/ {
+#             proxy_pass http://localhost:5000/;
+#             proxy_set_header X-Forwarded-For $remote_addr;
+#             proxy_buffering off;
+#             proxy_set_header       Host $host;
+#         }
+#   notify:
+#     - restart nginx
+
+
+- name: install jitsi-token-moderation-plugin
+  ansible.builtin.git:
+    repo: 'https://github.com/nvonahsen/jitsi-token-moderation-plugin'
+    dest: /usr/share/jitsi-meet/jitsi-token-moderation-plugin
+    version: "{{ meet_version_token_moderation }}"
+  when: meet_enable_token_moderation_plugin
+
+
+- name: make prosody include jitsi-token-moderation-plugin
+  lineinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    line: plugin_paths = { "/usr/share/jitsi-meet/prosody-plugins/", "/usr/share/jitsi-meet/jitsi-token-moderation-plugin" }
+    regexp: ^plugin_paths
   notify:
-    - restart nginx
+    - restart prosody
+    - restart jicofo
+    - restart jitsi-videobridge2
+  when: meet_enable_token_moderation_plugin
+
+
+# TODO: to stats?
+- name: install net-url
+  command: luarocks install net-url
+
+
+# TODO add localhots config for room API
+
+- name: configure prosody to use token_moderation plugin
+  lineinfile:
+    path: /etc/prosody/conf.d/{{ meet_domain }}.cfg.lua
+    line: '        "token_moderation";'
+    regexp: '^[ ]*"token_moderation".*'
+    insertafter: '^[ ]*"token_verification".*'
+
+- name: configure prosody localhost to use configured jwt app_id and app_secret
+  copy:
+    dest: /etc/prosody/conf.d/localhost.cfg.lua
+    content: |
+      -- Section for localhost
+
+      -- This allows clients to connect to localhost. No harm in it.
+      VirtualHost "localhost"
+              app_id="{{ meet_jwt_appid }}"
+              app_secret="{{ meet_jwt_appsecret }}"
+              authentication = "anonymous"
+              modules_enabled = {
+                  "muc_size"
+              }
+
+
+
+
+
