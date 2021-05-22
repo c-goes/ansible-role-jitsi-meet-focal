@@ -1,5 +1,5 @@
-jitsi-meet-focal [![Build Status](https://travis-ci.org/c-goes/ansible-role-jitsi-meet-focal.svg?branch=master)](https://travis-ci.org/c-goes/ansible-role-jitsi-meet-focal)
-=========
+jitsi-meet-focal ![example workflow](https://github.com/c-goes/ansible-role-jitsi-meet-focal/actions/workflows/ci.yml/badge.svg)
+======================
 
 Role for jitsi-meet with TURN server and Etherpad-Lite on Ubuntu 20.04 (not tested with any other version).
 
@@ -9,24 +9,8 @@ Different from SWITCH's code, this role focuses on self-contained deployments wi
 Molecule
 ---------
 
-This role is tested via Docker on Travis CI.
+This role is tested via Docker on GitHub Actions.
 
-It's also possible to test it locally with Podman rootless.
-To run Molecule and Podman rootless use:
-
-```
-echo 0 | sudo tee /proc/sys/net/ipv4/ip_unprivileged_port_start
-```
-
-Now run molecule converge.
-
-Change `/etc/hosts`
-
-```
-127.0.0.1       localhost meet.test
-```
-
-Open https://meet.test for manual testing (HTTPS is always needed for WebRTC to work).
 
 Requirements
 ------------

@@ -1,4 +1,5 @@
 galaxy_info:
+  role_name: jitsi-meet-focal
   author: c-goes
   description: role to install jitsi-meet on Ubuntu
 
